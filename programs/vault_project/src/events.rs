@@ -11,14 +11,26 @@ pub struct VaultInitialized {
 pub struct DepositMade {
     pub depositor: Pubkey,
     pub vault: Pubkey,
+    pub child: Pubkey,
     pub amount: u64,
-    pub total_deposited: u64,
+    pub child_total_deposited: u64,
 }
 
 #[event]
-pub struct WithdrawalMade {
+pub struct PayoutRequested {
     pub admin: Pubkey,
     pub vault: Pubkey,
+    pub child: Pubkey,
+    pub payout: Pubkey,
     pub amount: u64,
-    pub total_withdrawn: u64,
+}
+
+#[event]
+pub struct PayoutExecuted {
+    pub admin: Pubkey,
+    pub vault: Pubkey,
+    pub child: Pubkey,
+    pub recipient: Pubkey,
+    pub amount: u64,
+    pub child_total_paid_out: u64,
 }

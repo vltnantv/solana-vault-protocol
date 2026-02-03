@@ -1,7 +1,9 @@
-pub mod deposit;
 pub mod initialize;
-pub mod withdraw;
+pub mod deposit_and_auto_register;
+pub mod admin_request_payout;
+pub mod admin_execute_payout;
 
-pub use deposit::*;
 pub use initialize::*;
-pub use withdraw::*;
+pub use deposit_and_auto_register::*;
+pub use admin_request_payout::*;
+pub use admin_execute_payout::*;

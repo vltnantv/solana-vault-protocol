@@ -3,10 +3,10 @@ use anchor_lang::system_program;
 
 use crate::errors::VaultError;
 use crate::events::DepositMade;
-use crate::state::Vault;
+use crate::state::{ChildAccount, Vault, CHILD_SEED};
 
 #[derive(Accounts)]
-pub struct Deposit<'info> {
+pub struct DepositAndAutoRegister<'info> {
     #[account(mut)]
     pub depositor: Signer<'info>,
 
@@ -16,6 +16,15 @@ pub struct Deposit<'info> {
         bump = vault.vault_bump,
     )]
     pub vault: Account<'info, Vault>,
+
+    #[account(
+        init_if_needed,
+        payer = depositor,
+        space = ChildAccount::LEN,
+        seeds = [CHILD_SEED, vault.key().as_ref(), depositor.key().as_ref()],
+        bump,
+    )]
+    pub child: Account<'info, ChildAccount>,
 
     /// CHECK: Treasury PDA that holds SOL. Validated by seeds derivation.
     #[account(
@@ -28,8 +37,20 @@ pub struct Deposit<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<Deposit>, amount: u64) -> Result<()> {
-    require!(amount > 0, VaultError::InvalidDepositAmount);
+pub fn handler(ctx: Context<DepositAndAutoRegister>, amount: u64) -> Result<()> {
+    require!(amount > 0, VaultError::InvalidAmount);
+
+    let child = &mut ctx.accounts.child;
+
+    // If this child was just initialized, set its fields
+    if child.vault == Pubkey::default() {
+        child.vault = ctx.accounts.vault.key();
+        child.authority = ctx.accounts.depositor.key();
+        child.total_deposited = 0;
+        child.total_paid_out = 0;
+        child.created_at = Clock::get()?.unix_timestamp;
+        child.bump = ctx.bumps.child;
+    }
 
     // Transfer SOL from depositor to treasury PDA
     system_program::transfer(
@@ -43,17 +64,17 @@ pub fn handler(ctx: Context<Deposit>, amount: u64) -> Result<()> {
         amount,
     )?;
 
-    let vault = &mut ctx.accounts.vault;
-    vault.total_deposited = vault
+    child.total_deposited = child
         .total_deposited
         .checked_add(amount)
-        .ok_or(VaultError::ArithmeticOverflow)?;
+        .ok_or(VaultError::MathOverflow)?;
 
     emit!(DepositMade {
         depositor: ctx.accounts.depositor.key(),
-        vault: vault.key(),
+        vault: ctx.accounts.vault.key(),
+        child: child.key(),
         amount,
-        total_deposited: vault.total_deposited,
+        child_total_deposited: child.total_deposited,
     });
 
     Ok(())

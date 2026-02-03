@@ -18,13 +18,25 @@ pub mod vault_project {
         instructions::initialize::handler(ctx)
     }
 
-    /// Deposits SOL into the vault treasury. Anyone can deposit.
-    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
-        instructions::deposit::handler(ctx, amount)
+    /// Deposits SOL into the vault treasury. Auto-registers a child account on first deposit.
+    pub fn deposit_and_auto_register(
+        ctx: Context<DepositAndAutoRegister>,
+        amount: u64,
+    ) -> Result<()> {
+        instructions::deposit_and_auto_register::handler(ctx, amount)
     }
 
-    /// Withdraws SOL from the vault treasury. Admin-only.
-    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
-        instructions::withdraw::handler(ctx, amount)
+    /// Admin requests a payout from a child account's deposited balance.
+    pub fn admin_request_payout(
+        ctx: Context<AdminRequestPayout>,
+        amount: u64,
+        nonce: u64,
+    ) -> Result<()> {
+        instructions::admin_request_payout::handler(ctx, amount, nonce)
+    }
+
+    /// Admin executes a previously requested payout.
+    pub fn admin_execute_payout(ctx: Context<AdminExecutePayout>) -> Result<()> {
+        instructions::admin_execute_payout::handler(ctx)
     }
 }
