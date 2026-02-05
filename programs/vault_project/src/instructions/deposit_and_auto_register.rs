@@ -12,7 +12,7 @@ pub struct DepositAndAutoRegister<'info> {
 
     #[account(
         mut,
-        seeds = [Vault::SEED_PREFIX, vault.admin.as_ref()],
+        seeds = [Vault::SEED_PREFIX, vault.admin_authority.as_ref()],
         bump = vault.vault_bump,
     )]
     pub vault: Account<'info, Vault>,

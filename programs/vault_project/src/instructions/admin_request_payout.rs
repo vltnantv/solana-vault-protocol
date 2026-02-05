@@ -13,7 +13,7 @@ pub struct AdminRequestPayout<'info> {
     #[account(
         seeds = [Vault::SEED_PREFIX, admin.key().as_ref()],
         bump = vault.vault_bump,
-        has_one = admin @ VaultError::Unauthorized,
+        constraint = vault.admin_authority == admin.key() @ VaultError::Unauthorized,
     )]
     pub vault: Account<'info, Vault>,
 

@@ -16,4 +16,16 @@ pub enum VaultError {
 
     #[msg("Math overflow")]
     MathOverflow,
+
+    #[msg("Insufficient funds in treasury")]
+    InsufficientFunds,
+
+    #[msg("Minting would exceed max supply")]
+    ExceedsMaxSupply,
+
+    #[msg("Invalid exchange rate: numerator must be > 0")]
+    InvalidNumerator,
+
+    #[msg("Invalid exchange rate: denominator must be > 0")]
+    InvalidDenominator,
 }
